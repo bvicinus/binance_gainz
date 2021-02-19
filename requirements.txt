@@ -1,0 +1,4 @@
+setuptools_rust
+cryptography
+python-binance
+python-dotenv
