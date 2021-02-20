@@ -1,11 +1,11 @@
-import os 
 import json
-from dotenv import load_dotenv
 from binance.client import Client
-from coinmarketcapapi import CoinMarketCapAPI, CoinMarketCapAPIError
+# local imports 
 from settings import config
 import calculate
+import cmc
 
+saveOrdersFile = False
 FIAT = 'USD'
 CRYPTO = config['crypto']
 XCRYPTO = f'{CRYPTO}{FIAT}'
@@ -25,19 +25,12 @@ crypto_free = next((b.get('free') for b in balances if b.get('asset') == CRYPTO)
 print(f'How much {CRYPTO} owned right now: [{crypto_free}]')
 
 orders = client.get_all_orders(symbol=XCRYPTO)
-# with open('orders.json', 'w') as f:
-#     f.write(json.dumps(orders, indent=2, separators=(',', ': ')))
-# print('finished gathering all orders')
+if saveOrdersFile:
+    with open('orders.json', 'w') as f:
+        f.write(json.dumps(orders, indent=2, separators=(',', ': ')))
+print('finished gathering all orders')
 
-cmc = CoinMarketCapAPI(config['cmc_api_key'])
-
-crypto_listings = cmc.cryptocurrency_listings_latest().data
-
-crypto_price = next((crypto.get('quote', {}).get(FIAT, {}).get('price')
-                  for crypto in crypto_listings 
-                  if crypto.get('symbol') == CRYPTO), None)
-if crypto_price is None:
-    raise Exception(f'{CRYPTO} price is None')                  
+crypto_price = cmc.get_crypto_price(ticker=CRYPTO)
 print(f'Current {XCRYPTO} price: [{crypto_price}]')
 
 equity = calculate.equity(price=float(crypto_price), quantity=float(crypto_free))
