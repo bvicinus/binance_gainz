@@ -20,10 +20,10 @@ balances = account.get('balances', [])
 btc_free = next((b.get('free') for b in balances if b.get('asset') == 'BTC'), None)
 print(f'How much Bitcoin owned right now: [{btc_free}]')
 
-orders = client.get_all_orders(symbol='BTCUSD')
-with open('orders.json', 'w') as f:
-    f.write(json.dumps(orders, indent=2, separators=(',', ': ')))
-print('finished gathering all orders')
+orders = client.get_all_orders(symbol='BNBUSD')
+# with open('orders.json', 'w') as f:
+#     f.write(json.dumps(orders, indent=2, separators=(',', ': ')))
+# print('finished gathering all orders')
 
 cmc = CoinMarketCapAPI(config['cmc_api_key'])
 
@@ -38,3 +38,6 @@ print(f'Current BTC/USD price: [{btc_price}]')
 
 equity = calculate.equity(price=float(btc_price), quantity=float(btc_free))
 print(f'Your equity in BTC/USD: [{equity}]')
+
+gainz = calculate.unrealized_gains(order_list=orders, current_price=btc_price)
+print(f'these are your gainz [{gainz}]')
