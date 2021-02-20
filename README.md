@@ -3,6 +3,11 @@
 - Feel free to open pull requests or submit feature requests. 
 - This is **very much** a work in progress, and will be updated much more! 
 
+## API Keys
+- You will need to make a *free* account for an API key with *CoinMarketCap* (here)[https://pro.coinmarketcap.com/]
+- You will also need API keys from *Binance*
+    - Checkout an FAQ (here)[https://www.binance.com/en/support/faq/360002502072-How-to-create-API]
+
 ## Planned features:
 - Support for multiple different coins, besides BTC
 - Support for liquid cash (in USD)
