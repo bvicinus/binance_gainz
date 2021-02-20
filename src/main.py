@@ -32,13 +32,13 @@ def main():
     print('finished gathering all orders')
 
     crypto_price = cmc.get_crypto_price(ticker=CRYPTO)
-    print(f'Current {XCRYPTO} price: [{crypto_price}]')
+    print(f'Current {XCRYPTO} price: [${crypto_price}]')
 
     equity = calculate.equity(price=float(crypto_price), quantity=float(crypto_free))
-    print(f'Your equity in {XCRYPTO}: [{equity}]')
+    print(f'Your equity in {XCRYPTO}: [${equity}]')
 
     gainz = calculate.unrealized_gains(order_list=orders, current_price=crypto_price, ticker=XCRYPTO)
-    print(f'these are your {XCRYPTO} gainz [{gainz}]')
+    print(f'these are your {XCRYPTO} gainz [${gainz}]')
 
 
 if __name__ == '__main__':
