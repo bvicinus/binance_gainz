@@ -6,6 +6,10 @@ from coinmarketcapapi import CoinMarketCapAPI, CoinMarketCapAPIError
 from settings import config
 import calculate
 
+FIAT = 'USD'
+CRYPTO = config['crypto']
+XCRYPTO = f'{CRYPTO}{FIAT}'
+
 tld = config['top_level_domain']
 client = Client(config['binance_api_key'], 
                 config['binance_api_secret'] ,
@@ -17,10 +21,10 @@ if status.get('status') != 0:
 
 account = client.get_account()
 balances = account.get('balances', [])
-btc_free = next((b.get('free') for b in balances if b.get('asset') == 'BTC'), None)
-print(f'How much Bitcoin owned right now: [{btc_free}]')
+crypto_free = next((b.get('free') for b in balances if b.get('asset') == CRYPTO), None)
+print(f'How much {CRYPTO} owned right now: [{crypto_free}]')
 
-orders = client.get_all_orders(symbol='BNBUSD')
+orders = client.get_all_orders(symbol=XCRYPTO)
 # with open('orders.json', 'w') as f:
 #     f.write(json.dumps(orders, indent=2, separators=(',', ': ')))
 # print('finished gathering all orders')
@@ -28,16 +32,16 @@ orders = client.get_all_orders(symbol='BNBUSD')
 cmc = CoinMarketCapAPI(config['cmc_api_key'])
 
 crypto_listings = cmc.cryptocurrency_listings_latest().data
-# print(f'btc stuff: [{crypto_listings}]')
-btc_price = next((crypto.get('quote', {}).get('USD', {}).get('price')
+
+crypto_price = next((crypto.get('quote', {}).get(FIAT, {}).get('price')
                   for crypto in crypto_listings 
-                  if crypto.get('symbol') == 'BTC'), None)
-if btc_price is None:
-    raise Exception('btc price is None')                  
-print(f'Current BTC/USD price: [{btc_price}]')
+                  if crypto.get('symbol') == CRYPTO), None)
+if crypto_price is None:
+    raise Exception(f'{CRYPTO} price is None')                  
+print(f'Current {XCRYPTO} price: [{crypto_price}]')
 
-equity = calculate.equity(price=float(btc_price), quantity=float(btc_free))
-print(f'Your equity in BTC/USD: [{equity}]')
+equity = calculate.equity(price=float(crypto_price), quantity=float(crypto_free))
+print(f'Your equity in {XCRYPTO}: [{equity}]')
 
-gainz = calculate.unrealized_gains(order_list=orders, current_price=btc_price)
-print(f'these are your gainz [{gainz}]')
+gainz = calculate.unrealized_gains(order_list=orders, current_price=crypto_price, ticker=XCRYPTO)
+print(f'these are your {XCRYPTO} gainz [{gainz}]')

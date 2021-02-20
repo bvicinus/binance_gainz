@@ -2,7 +2,7 @@
 def equity(price: float, quantity: float) -> float:
     return price * quantity
 
-def unrealized_gains(order_list: list, current_price: float, ticker: str = 'BTCUSD') -> float:
+def unrealized_gains(order_list: list, current_price: float, ticker: str) -> float:
     quantity = 0.0
     cost = 0.0
     for order in order_list:
