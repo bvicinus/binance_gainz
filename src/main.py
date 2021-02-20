@@ -24,12 +24,7 @@ if status.get('status') != 0:
 
 print(f'system is [{status}]')
 
-# info = client.get_exchange_info()
-# with open('info.json', 'w') as f:
-#     f.write(str(info))
-
 account = client.get_account()
-# print(f'account /[{account}]')
 balances = account.get('balances', [])
 btc_free = next((b.get('free') for b in balances if b.get('asset') == 'BTC'), None)
 print(f'How much Bitcoin owned right now: [{btc_free}]')
@@ -42,6 +37,12 @@ print('finished gathering all orders')
 
 cmc = CoinMarketCapAPI(cmc_api_key)
 
-r = cmc.cryptocurrency_info(symbol='BTC')
-print(f'btc stuff: [{r.data}]')
+crypto_listings = cmc.cryptocurrency_listings_latest().data
+# print(f'btc stuff: [{crypto_listings}]')
+btc_price = next((crypto.get('quote', {}).get('USD', {}).get('price')
+                  for crypto in crypto_listings 
+                  if crypto.get('symbol') == 'BTC'), None)
+if btc_price is None:
+    raise Exception('btc price is None')                  
+print(f'Current BTC/USD price: [{btc_price}]')
 
