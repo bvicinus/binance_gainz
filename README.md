@@ -14,3 +14,8 @@
 - 24h net gain 
 - Weekly net gain
 - Dynamic date ranges 
+
+### Todo
+- Take into account sales, not just buys
+- arg parse for multiple symbols
+- write gainz to local file for historical tracking 
