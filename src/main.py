@@ -9,18 +9,15 @@ from settings import config
 import calculate
 import cmc
 
-saveOrdersFile = False
+SAVE_ORDERS = False
 FIAT = 'USD'
-
-tld = config['top_level_domain']
+TLD = config['top_level_domain']
 client = Client(config['binance_api_key'], 
                 config['binance_api_secret'] ,
-                tld=tld)
+                tld=TLD)
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Binance Gainz Calculator')
-    parser.add_argument('-s', '--symbol', type=str, default='BTC',
-                        help='Enter the Crypto symbol (do not include "USD")')
     args = parser.parse_args()
     return args
 
@@ -34,7 +31,7 @@ def store_historical_data(fiat_symbol: str,
                           equity: float,
                           gainz: float) -> None:
     data = {
-        'fiat_symbol':fiat_symbol,
+        'symbol':fiat_symbol,
         'quantity': quantity,
         'current_price': current_price,
         'equity': equity,
@@ -54,38 +51,49 @@ def store_historical_data(fiat_symbol: str,
 
 def get_orders(fiat_symbol: str):
     orders = client.get_all_orders(symbol=fiat_symbol)
-    if saveOrdersFile:
+    if SAVE_ORDERS:
         with open(os.path.join('data', 'orders.json'), 'w') as f:
             f.write(json.dumps(orders, indent=2, separators=(',', ': ')))
-    print('Finished gathering all orders')
     return orders
         
 
-def main(symbol: str):
+def main():
     status = client.get_system_status()
     if status.get('status') != 0:
-        raise Exception(f'Binance.{tld} is offline')
+        raise Exception(f'Binance.{TLD} is offline')
 
-    fiat_symbol = get_symbol_with_fiat(symbol=symbol)
-    print(f'Running calculations with [{fiat_symbol}]')
     account = client.get_account()
     balances = account.get('balances', [])
-    crypto_free = next((b.get('free') for b in balances if b.get('asset') == symbol), None)
-    print(f'How much {symbol} owned right now: [{crypto_free}]')
+    for balance in balances:
+        if float(balance.get('free', 0)) > 0:
+            calculate_gainz(holding=balance)
+
+def calculate_gainz(holding: dict) -> None:
+    symbol = holding.get('asset')
+    quantity = float(holding.get('free', 0))
+    print(f'\nRunning calculations with [{symbol}]')
+    print(f'How much [{symbol}] owned right now: [{quantity}]')
+    if symbol == FIAT:
+        store_historical_data(fiat_symbol=FIAT,
+                          quantity=quantity,
+                          current_price=1,
+                          equity=quantity,
+                          gainz=0)
+        return
+
+    fiat_symbol = get_symbol_with_fiat(symbol=symbol)
+    crypto_price = cmc.get_crypto_price(ticker=symbol)
+    print('Current [{}] price: [${:.2f}]'.format(fiat_symbol, crypto_price))
+
+    equity = calculate.equity(price=float(crypto_price), quantity=quantity)
+    print('Your equity in [{}]: [${:.2f}]'.format(fiat_symbol, equity))
 
     orders = get_orders(fiat_symbol=fiat_symbol)
-
-    crypto_price = cmc.get_crypto_price(ticker=symbol)
-    print(f'Current {fiat_symbol} price: [${crypto_price}]')
-
-    equity = calculate.equity(price=float(crypto_price), quantity=float(crypto_free))
-    print(f'Your equity in {fiat_symbol}: [${equity}]')
-
     gainz = calculate.unrealized_gains(order_list=orders, current_price=crypto_price, ticker=fiat_symbol)
-    print(f'these are your {fiat_symbol} gainz [${gainz}]')
+    print('These are your [{}] gainz [${:.2f}]'.format(fiat_symbol, gainz))
     
     store_historical_data(fiat_symbol=fiat_symbol,
-                          quantity=crypto_free,
+                          quantity=quantity,
                           current_price=crypto_price,
                           equity=equity,
                           gainz=gainz)
@@ -93,4 +101,4 @@ def main(symbol: str):
 
 if __name__ == '__main__':
     args = parse_args()
-    main(symbol=args.symbol)
+    main()

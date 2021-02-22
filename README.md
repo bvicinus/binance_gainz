@@ -9,13 +9,11 @@
     - Checkout an FAQ [here](https://www.binance.com/en/support/faq/360002502072-How-to-create-API)
 
 ## Planned features:
-- Support for liquid cash (in USD)
 - Overall net gain 
 - 24h net gain 
+- Today's gains
 - Weekly net gain
 - Dynamic date ranges 
 
 ### Todo
 - Take into account sales, not just buys
-- arg parse for multiple symbols
-- write gainz to local file for historical tracking 
