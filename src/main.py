@@ -64,11 +64,13 @@ def main():
 
     account = client.get_account()
     balances = account.get('balances', [])
+    gainz = 0.0
     for balance in balances:
         if float(balance.get('free', 0)) > 0:
-            calculate_gainz(holding=balance)
+            gainz += calculate_gainz(holding=balance)
+    print('\nTotal Gainz: [${:.2f}]\n'.format(gainz))
 
-def calculate_gainz(holding: dict) -> None:
+def calculate_gainz(holding: dict) -> float:
     symbol = holding.get('asset')
     quantity = float(holding.get('free', 0))
     print(f'\nRunning calculations with [{symbol}]')
@@ -79,7 +81,7 @@ def calculate_gainz(holding: dict) -> None:
                           current_price=1,
                           equity=quantity,
                           gainz=0)
-        return
+        return 0.0
 
     fiat_symbol = get_symbol_with_fiat(symbol=symbol)
     crypto_price = cmc.get_crypto_price(ticker=symbol)
@@ -97,6 +99,7 @@ def calculate_gainz(holding: dict) -> None:
                           current_price=crypto_price,
                           equity=equity,
                           gainz=gainz)
+    return gainz                          
 
 
 if __name__ == '__main__':

@@ -9,7 +9,6 @@
     - Checkout an FAQ [here](https://www.binance.com/en/support/faq/360002502072-How-to-create-API)
 
 ## Planned features:
-- Overall net gain 
 - 24h net gain 
 - Today's gains
 - Weekly net gain
