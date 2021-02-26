@@ -18,6 +18,8 @@ client = Client(config['binance_api_key'],
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Binance Gainz Calculator')
+    parser.add_argument('-s', '--symbol', type=str, default=None,
+                        help='To only calculate gainz for 1 symbol, specify the crypto symbol (do not include "USD")')
     args = parser.parse_args()
     return args
 
@@ -52,12 +54,12 @@ def store_historical_data(fiat_symbol: str,
 def get_orders(fiat_symbol: str):
     orders = client.get_all_orders(symbol=fiat_symbol)
     if SAVE_ORDERS:
-        with open(os.path.join('data', 'orders.json'), 'w') as f:
+        with open(os.path.join('data', f'{fiat_symbol}_orders.json'), 'w') as f:
             f.write(json.dumps(orders, indent=2, separators=(',', ': ')))
     return orders
         
 
-def main():
+def main(symbol=None):
     status = client.get_system_status()
     if status.get('status') != 0:
         raise Exception(f'Binance.{TLD} is offline')
@@ -66,8 +68,12 @@ def main():
     balances = account.get('balances', [])
     gainz = 0.0
     for balance in balances:
-        if float(balance.get('free', 0)) > 0:
+        if symbol is None and float(balance.get('free', 0)) > 0:
             gainz += calculate_gainz(holding=balance)
+        elif symbol == balance.get('asset'):  # symbol is not None
+            gainz = calculate_gainz(holding=balance)
+            print(f'\n{symbol} Gainz: [${gainz:.2f}]\n'.format(symbol, gainz))
+            return
     print('\nTotal Gainz: [${:.2f}]\n'.format(gainz))
 
 def calculate_gainz(holding: dict) -> float:
@@ -104,4 +110,4 @@ def calculate_gainz(holding: dict) -> float:
 
 if __name__ == '__main__':
     args = parse_args()
-    main()
+    main(symbol=args.symbol)
